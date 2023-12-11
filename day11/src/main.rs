@@ -32,7 +32,7 @@ impl Universe {
         Self { galaxies: Vec::new() }
     }
 
-    pub fn expand_y(&mut self, filled_columns: &BTreeSet<i64>) {
+    pub fn expand_x(&mut self, filled_columns: &BTreeSet<i64>) {
         let maximum = *filled_columns.last().unwrap() + 1;
         let mut offsets: Vec<i64> = Vec::new();
 
@@ -97,15 +97,20 @@ fn main() -> PuzzleResult<()> {
         universe.galaxies.extend(new_galaxies);
     }
 
-    universe.expand_y(&filled_columns);
+    universe.expand_x(&filled_columns);
 
     let mut distances: i64 = 0;
     
     for i in 0..universe.galaxies.len() - 1 {
         for j in i+1..universe.galaxies.len() {
+            let g1 = &universe.galaxies[i];
+            let g2 = &universe.galaxies[j];
+            let distance = g1.distance(&g2);
+
             #[cfg(debug_assertions)]
-            println!("{:?} ==> {:?} = {}", universe.galaxies[i], universe.galaxies[j], universe.galaxies[i].distance(&universe.galaxies[j]));
-            distances += universe.galaxies[i].distance(&universe.galaxies[j]);
+            println!("{:?} ==> {:?} = {}", g1, g2, distance);
+
+            distances += distance;
         }
     }
 
