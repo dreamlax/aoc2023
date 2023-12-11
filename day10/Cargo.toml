@@ -9,5 +9,5 @@ edition = "2021"
 aoc-utils = { path = "../aoc-utils" }
 
 [features]
-default = ["part2"]
+default = []
 part2 = []

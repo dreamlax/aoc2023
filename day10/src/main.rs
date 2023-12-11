@@ -10,11 +10,11 @@ fn main() -> PuzzleResult<()> {
     let reader = get_puzzle_input()?;
     let board = Board::try_from(reader)?;
 
-    let answer = if cfg!(not(feature="part2")) {
-        board.find_furthest_distance()
+    let answer = if cfg!(feature = "part2") {
+        board.count_enclosed_spaces()
     }
     else {
-        board.count_enclosed_spaces()
+        board.find_furthest_distance()
     };
 
     println!("Answer is: {}", answer);
