@@ -98,21 +98,17 @@ fn main() -> PuzzleResult<()> {
     }
 
     universe.expand_x(&filled_columns);
-
-    let mut distances: i64 = 0;
     
-    for i in 0..universe.galaxies.len() - 1 {
-        for j in i+1..universe.galaxies.len() {
-            let g1 = &universe.galaxies[i];
-            let g2 = &universe.galaxies[j];
-            let distance = g1.distance(&g2);
+    let galaxy_count = universe.galaxies.len();
 
-            #[cfg(debug_assertions)]
-            println!("{:?} ==> {:?} = {}", g1, g2, distance);
-
-            distances += distance;
-        }
-    }
+    let distances: i64 = universe.galaxies[..galaxy_count-1]
+        .iter()
+        .enumerate()
+        .flat_map(|(idx,g1)| universe.galaxies[idx+1..galaxy_count]
+            .iter()
+            .map(|g2| g1.distance(g2))
+        )
+        .sum();
 
     println!("Distances: {}", distances);
 
