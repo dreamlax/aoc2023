@@ -62,15 +62,19 @@ fn find_mirror_in_rows(rows: &[&str], slop: usize) -> Vec<usize> {
         .collect::<Vec<usize>>()
 }
 
-fn find_mirror(s: &str, slop: usize) -> PuzzleResult<(usize,usize)> {
+fn find_mirror(s: &str, slop: usize) -> usize {
     let lines: Vec<&str> = s.split('\n').filter(|l| l.len() > 0).collect();
-    let transposed = transpose(&lines);
-    let transposed = transposed.iter().map(|x| x.as_str()).collect::<Vec<&str>>();
 
     let mirror_rows = find_mirror_in_rows(&lines, slop);
-    let mirror_cols = find_mirror_in_rows(&transposed, slop);
-
-    Ok((*mirror_cols.first().unwrap_or(&0), *mirror_rows.first().unwrap_or(&0)))
+    if mirror_rows.len() == 0 {
+        let transposed = transpose(&lines);
+        let transposed = transposed.iter().map(|x| x.as_str()).collect::<Vec<&str>>();
+        let mirror_cols = find_mirror_in_rows(&transposed, slop);
+        *mirror_cols.first().unwrap()
+    }
+    else {
+        *mirror_rows.first().unwrap() * 100
+    }
 }
 
 fn main() -> PuzzleResult<()> {
@@ -89,9 +93,6 @@ fn main() -> PuzzleResult<()> {
         .split("\n\n")
         .into_iter()
         .map(|m| find_mirror(m, slop))
-        .collect::<PuzzleResult<Vec<(usize,usize)>>>()?
-        .into_iter()
-        .map(|(c, r)| c + r * 100)
         .sum();
 
     println!("Answer: {answer}");
