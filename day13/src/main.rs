@@ -1,12 +1,15 @@
 use std::io::Read;
 use aoc_utils::prelude::*;
 
+/// Work out the slop between two strings (0 = equal, 1 = one char different, etc.)
 fn sloppy_compare(line1: &str, line2: &str) -> usize {
     line1.chars()
         .zip(line2.chars())
         .fold(0, |acc,(c1,c2)| if c1 == c2 { acc } else { acc + 1 })
 }
 
+/// Check if the given mirror point is valid by comparing the the surrounding rows
+/// and returning the amount of slop
 fn check_mirror_rows(lines: &[&str], mirror_point: usize) -> usize {
     assert!(lines.len() > 1);
 
@@ -23,12 +26,13 @@ fn check_mirror_rows(lines: &[&str], mirror_point: usize) -> usize {
     slop
 }
 
+/// Convert rows to columns
 fn transpose(lines: &[&str]) -> Vec<String> {
     let transposed_len = lines[0].len();
 
     lines
         .iter()
-        .fold(vec![String::new(); transposed_len], |mut acc, line| {
+        .fold(vec![String::with_capacity(lines.len()); transposed_len], |mut acc, line| {
             line
                 .chars()
                 .enumerate()
@@ -37,7 +41,9 @@ fn transpose(lines: &[&str]) -> Vec<String> {
         })
 }
 
-fn find_mirror_in_rows(rows: &[&str], slop: usize) -> Vec<usize> {
+/// Look for the mirror point that has the required amount of slop. Returns None
+/// if not found.
+fn find_mirror_in_rows(rows: &[&str], slop: usize) -> Option<usize> {
     rows
         .windows(2)
         .enumerate()
@@ -59,22 +65,23 @@ fn find_mirror_in_rows(rows: &[&str], slop: usize) -> Vec<usize> {
                 None
             }
         })
-        .collect::<Vec<usize>>()
+        .nth(0)
 }
 
+/// Tries to find the mirror point in the given puzzle by first looking at
+/// rows, and then looking at columns. The mirror point *must* contain the
+/// provided level of slop.
 fn find_mirror(s: &str, slop: usize) -> usize {
     let lines: Vec<&str> = s.split('\n').filter(|l| l.len() > 0).collect();
 
-    let mirror_rows = find_mirror_in_rows(&lines, slop);
-    if mirror_rows.len() == 0 {
-        let transposed = transpose(&lines);
-        let transposed = transposed.iter().map(|x| x.as_str()).collect::<Vec<&str>>();
-        let mirror_cols = find_mirror_in_rows(&transposed, slop);
-        *mirror_cols.first().unwrap()
+    if let Some(mirror_row) = find_mirror_in_rows(&lines, slop) {
+        return mirror_row * 100;
     }
-    else {
-        *mirror_rows.first().unwrap() * 100
-    }
+
+    let transposed = transpose(&lines);
+    let transposed = transposed.iter().map(|x| x.as_str()).collect::<Vec<&str>>();
+    find_mirror_in_rows(&transposed, slop)
+        .expect("No mirror found in row or column")
 }
 
 fn main() -> PuzzleResult<()> {
