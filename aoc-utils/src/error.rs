@@ -1,12 +1,13 @@
-use std::fmt;
 use std::error::Error;
-use std::num::ParseIntError;
+use std::fmt;
+use std::num::{ParseIntError,TryFromIntError};
 
 #[derive(Debug)]
 pub enum PuzzleErrorKind {
     MissingInput,
     InputError,
     ParseError,
+    IntegerError,
     IOError(std::io::Error)
 }
 
@@ -30,6 +31,12 @@ impl From<PuzzleErrorKind> for PuzzleError {
 impl From<ParseIntError> for PuzzleError {
     fn from(_: ParseIntError) -> Self {
         Self { kind: PuzzleErrorKind::ParseError }
+    }
+}
+
+impl From<TryFromIntError> for PuzzleError {
+    fn from(_: TryFromIntError) -> Self {
+        Self { kind: PuzzleErrorKind::IntegerError }
     }
 }
 

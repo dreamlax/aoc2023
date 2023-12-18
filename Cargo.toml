@@ -1,5 +1,5 @@
 [workspace]
-
+resolver = "2"
 members = [
     "aoc-utils",
     "day1",
@@ -16,5 +16,6 @@ members = [
     "day12",
     "day13",
     "day14",
-    "day15"
+    "day15",
+    "day16"
 ]
