@@ -33,6 +33,12 @@ struct Position {
     dy: isize
 }
 
+impl Position {
+    fn is_stationary(&self) -> bool {
+        self.dx == 0 && self.dy == 0
+    }
+}
+
 #[derive(Eq,PartialEq)]
 pub struct MapState {
     cost: u32,
@@ -54,6 +60,84 @@ impl PartialOrd for MapState {
 }
 
 impl WorldMap {
+    fn get_ultra_crucible_next_cells(&self, position: &Position) -> Vec<Position> {
+        let mut new_possible_positions = Vec::new();
+
+        let can_change_direction = position.is_stationary() || position.dx.abs() >= 4 || position.dy.abs() >= 4;
+
+        // go north
+        if (position.dy < 0 && position.dy > -10) || (position.dy == 0 && can_change_direction) {
+            if let Some(point) = position.point.checked_offset(0, -1) {
+                new_possible_positions.push(Position { point, dx: 0, dy: position.dy - 1 });
+            }
+        }
+
+        // go south
+        if (position.dy > 0 && position.dy < 10) || (position.dy == 0 && can_change_direction) {
+            if let Some(point) = position.point.checked_offset(0, 1) {
+                if point.y < self.height {
+                    new_possible_positions.push(Position { point, dx: 0, dy: position.dy + 1 });
+                }
+            }
+        }
+
+        // go east
+        if (position.dx > 0 && position.dx < 10) || (position.dx == 0 && can_change_direction) {
+            if let Some(point) = position.point.checked_offset(1, 0) {
+                if point.x < self.width {
+                    new_possible_positions.push(Position { point, dx: position.dx + 1, dy: 0 });
+                }
+            }
+        }
+
+        // go west
+        if (position.dx < 0 && position.dx > -10) || (position.dx == 0 && can_change_direction) {
+            if let Some(point) = position.point.checked_offset(-1, 0) {
+                new_possible_positions.push(Position { point, dx: position.dx - 1, dy: 0 });
+            }
+        }
+
+        new_possible_positions
+    }
+
+    fn get_normal_crucible_next_cells(&self, position: &Position) -> Vec<Position> {
+        let mut new_possible_positions = Vec::new();
+
+        // go north
+        if position.dy <= 0 && position.dy > -3 {
+            if let Some(point) = position.point.checked_offset(0, -1) {
+                new_possible_positions.push(Position { point, dx: 0, dy: position.dy - 1 });
+            }
+        }
+
+        // go south
+        if position.dy >= 0 && position.dy < 3 {
+            if let Some(point) = position.point.checked_offset(0, 1) {
+                if point.y < self.height {
+                    new_possible_positions.push(Position { point, dx: 0, dy: position.dy + 1 });
+                }
+            }
+        }
+
+        // go east
+        if position.dx >= 0 && position.dx < 3 {
+            if let Some(point) = position.point.checked_offset(1, 0) {
+                if point.x < self.width {
+                    new_possible_positions.push(Position { point, dx: position.dx + 1, dy: 0 });
+                }
+            }
+        }
+
+        // go west
+        if position.dx <= 0 && position.dx > -3 {
+            if let Some(point) = position.point.checked_offset(-1, 0) {
+                new_possible_positions.push(Position { point, dx: position.dx - 1, dy: 0 });
+            }
+        }
+
+        new_possible_positions
+    }
+
     pub fn find_best_route(&self, start: Point<usize>, end: Point<usize>) -> u32 {
         let mut best_costs: HashMap<Position,u32> = HashMap::new();
         let mut heap = BinaryHeap::new();
@@ -100,35 +184,14 @@ impl WorldMap {
                 continue;
             }
 
-            let mut new_possible_positions = Vec::new();
-
-            if position.dy <= 0 && position.dy > -3 {
-                if let Some(point) = position.point.checked_offset(0, -1) {
-                    new_possible_positions.push(Position { point, dx: 0, dy: position.dy - 1 });
-                }
+            let new_possible_positions = if cfg!(feature = "part2")
+            {
+                self.get_ultra_crucible_next_cells(&position)
             }
-
-            if position.dy >= 0 && position.dy < 3 {
-                if let Some(point) = position.point.checked_offset(0, 1) {
-                    if point.y < self.height {
-                        new_possible_positions.push(Position { point, dx: 0, dy: position.dy + 1 });
-                    }
-                }
-            }
-
-            if position.dx >= 0 && position.dx < 3 {
-                if let Some(point) = position.point.checked_offset(1, 0) {
-                    if point.x < self.width {
-                        new_possible_positions.push(Position { point, dx: position.dx + 1, dy: 0 });
-                    }
-                }
-            }
-
-            if position.dx <= 0 && position.dx > -3 {
-                if let Some(point) = position.point.checked_offset(-1, 0) {
-                    new_possible_positions.push(Position { point, dx: position.dx - 1, dy: 0 });
-                }
-            }
+            else
+            {
+                self.get_normal_crucible_next_cells(&position)
+            };
 
             for new_position in &new_possible_positions {
                 let position_cost = cost + cell_cost![new_position.point];
