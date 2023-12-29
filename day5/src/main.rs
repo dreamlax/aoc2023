@@ -3,9 +3,6 @@ use std::io::BufRead;
 use std::ops::Range;
 use aoc_utils::prelude::*;
 
-// turns out this wasn't needed...
-mod rangeutils;
-
 enum State {
     ParseSeeds,
     ParseTableName,
